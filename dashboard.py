@@ -200,4 +200,45 @@ elif menu == "🔎 Prediksi":
                         cls_idx = int(box.cls[0])
                         cls_name = results[0].names[cls_idx]
                         conf = float(box.conf[0])
-                        st.write(f"- {cls
+                        st.write(f"- {cls_idx = int(box.cls[0])
+                        cls_name = results[0].names[cls_idx]
+                        conf = float(box.conf[0])
+                        if cls_name not in class_count:
+                            class_count[cls_name] = 0
+                        class_count[cls_name] += 1
+                    for cls_name, count in class_count.items():
+                        st.write(f"- {cls_name}: {count} objek")
+
+# ------------------------------
+# Halaman Feedback
+# ------------------------------
+elif menu == "💬 Feedback":
+    st.title("💬 Feedback")
+    st.markdown("Silakan berikan saran dan rating untuk dashboard ini.")
+    with st.form("form_feedback"):
+        nama = st.text_input("Nama")
+        rating = st.slider("Rating (1-5)", 1, 5, 3)
+        saran = st.text_area("Saran / Komentar")
+        submitted = st.form_submit_button("Kirim Feedback")
+        if submitted:
+            save_feedback({"nama": nama, "rating": rating, "saran": saran, "waktu": time.ctime()})
+            st.success("Terima kasih! Feedback berhasil dikirim.")
+    st.markdown("### Feedback sebelumnya:")
+    feedbacks = read_feedback()
+    if feedbacks:
+        for fb in feedbacks[-5:][::-1]:  # tampilkan 5 terakhir
+            st.write(f"- **{fb['nama']}** ({fb['waktu']}): Rating {fb['rating']} — {fb['saran']}")
+
+# ------------------------------
+# Halaman Tentang Penyusun
+# ------------------------------
+elif menu == "👤 Tentang Penyusun":
+    st.title("👤 Tentang Penyusun")
+    st.markdown("""
+Haii, salam kenal! 👋  
+Aku **Yeni Ckrisdayanti Manalu**, mahasiswa Statistika USK angkatan 22.  
+Projek dashboard ini untuk memenuhi **UTS Praktikum Big Data**.  
+
+Terima kasih sudah mengunjungi dashboard ini.  
+Semoga proyek UTS Big Data ini bermanfaat dan bisa menjadi referensi belajar komputer vision dan dashboard interaktif. 😊
+""")
