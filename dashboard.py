@@ -1,5 +1,5 @@
 # ------------------------------
-# Dashboard UTS - Praktikum Big Data (Revisi)
+# Dashboard UTS - Praktikum Big Data
 # ------------------------------
 import streamlit as st
 from ultralytics import YOLO
