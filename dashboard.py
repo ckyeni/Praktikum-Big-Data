@@ -1,3 +1,6 @@
+# ------------------------------
+# Dashboard UTS - Praktikum Big Data (Revisi)
+# ------------------------------
 import streamlit as st
 from ultralytics import YOLO
 import tensorflow as tf
@@ -15,14 +18,14 @@ import time
 st.set_page_config(page_title="UTS Big Data Dashboard", layout="wide", page_icon="🎓")
 
 # ------------------------------
-# Pilihan Tema
+# Tema Light / Dark (Revisi biru - ungu gelap)
 # ------------------------------
 tema = st.sidebar.radio("Pilih Tema:", ["Terang", "Gelap"])
 if tema == "Terang":
     st.markdown("""
     <style>
-    .stApp {background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%); color:#000;}
-    .css-1d391kg {background:#F0F0F0;}
+    .stApp {background: linear-gradient(180deg, #0f172a 0%, #6366f1 100%); color:#FFFFFF;}
+    .css-1d391kg {background:#1e293b;} /* sidebar */
     </style>
     """, unsafe_allow_html=True)
 else:
@@ -45,16 +48,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ------------------------------
-# Sidebar / Navigasi
+# Sidebar / Navigasi dengan ikon
 # ------------------------------
 st.sidebar.title("📌 Navigasi")
 menu = st.sidebar.radio("Menu", [
-    "Halaman Utama", 
-    "Klasifikasi Gambar", 
-    "Deteksi Objek",
-    "Prediksi", 
-    "Feedback",
-    "Tentang Penyusun"
+    "🏠 Halaman Utama", 
+    "🩻 Klasifikasi Gambar", 
+    "⚽ Deteksi Objek",
+    "🔎 Prediksi", 
+    "💬 Feedback",
+    "👤 Tentang Penyusun"
 ])
 
 # ------------------------------
@@ -107,7 +110,7 @@ yolo_model, cnn_model = load_models()
 # ------------------------------
 # Halaman Utama
 # ------------------------------
-if menu == "Halaman Utama":
+if menu == "🏠 Halaman Utama":
     st.title("👋 Selamat datang semuanya!")
     st.markdown("""
 Proyek ini dibuat sebagai **Ujian Tengah Semester (UTS) Praktikum Big Data**.  
@@ -118,8 +121,8 @@ Dashboard ini mengintegrasikan dua eksperimen computer vision:
 
 🔍 **Fitur yang bisa dicoba:**  
 - 🏠 Halaman Utama: Beranda dashboard  
-- 🩻 Klasifikasi Gambar: Coba model klasifikasi X-ray  
-- ⚽ Deteksi Objek: Coba model deteksi objek sepak bola  
+- 🩻 Klasifikasi Gambar: Ringkasan model klasifikasi X-ray (untuk menganalisis data kesehatan, deteksi pneumonia dari X-ray)  
+- ⚽ Deteksi Objek: Ringkasan model deteksi objek sepak bola (mendeteksi pemain dan bola di lapangan)  
 - 🔎 Prediksi: Upload gambar dan lihat prediksi model  
 - 💬 Feedback: Berikan saran dan rating  
 - 👤 Tentang Penyusun: Info tentang pembuat dashboard
@@ -128,49 +131,41 @@ Dashboard ini mengintegrasikan dua eksperimen computer vision:
 # ------------------------------
 # Halaman Klasifikasi Gambar
 # ------------------------------
-elif menu == "Klasifikasi Gambar":
+elif menu == "🩻 Klasifikasi Gambar":
     st.title("🩻 Klasifikasi Gambar")
     st.markdown("Di halaman ini, kamu dapat mencoba model klasifikasi gambar X-ray untuk mendeteksi pneumonia.")
     st.markdown("""
-**Ringkasan Proyek:**  
-- Dataset: Chest X-ray Images (Normal dan Pneumonia)  
-  Sumber: [Kaggle](https://www.kaggle.com/datasets/tolgadincer/labeled-chest-xray-images)  
+**Fungsi Model:**  
+Model CNN ini digunakan untuk **menganalisis data kesehatan** dari gambar rontgen X-ray dan membantu mengklasifikasikan pasien sebagai **Normal** atau **Pneumonia**.  
+
+**Dataset:** Chest X-ray Images (Normal & Pneumonia)  
+Sumber: [Kaggle](https://www.kaggle.com/datasets/tolgadincer/labeled-chest-xray-images)  
 - Total gambar: 5.856 (Normal: 1.583, Pneumonia: 4.273)  
 - Preprocessing: Rescaling, Augmentasi, Resize 128x128, Grayscale  
 - Model: CNN (Conv2D, MaxPooling, Flatten, Dense, Dropout)  
 - Evaluasi: Accuracy 93%, Precision & Recall ≥ 60% untuk kelas minor
 """)
-    if st.button("Mulai Menggunakan Model"):
-        st.session_state['page'] = 'prediksi'
+    st.info("Klik menu 🔎 Prediksi untuk mulai menggunakan model. (Tidak langsung pindah halaman agar tetap di Home)")
 
 # ------------------------------
 # Halaman Deteksi Objek
 # ------------------------------
-elif menu == "Deteksi Objek":
+elif menu == "⚽ Deteksi Objek":
     st.title("⚽ Deteksi Objek")
     st.markdown("""
-Halaman ini menggunakan model YOLO untuk mendeteksi objek sepak bola.
+Halaman ini menggunakan model **YOLOv8n** untuk mendeteksi objek sepak bola.  
+Model dapat mengenali **ball, player, goalkeeper, referee** di lapangan.  
 
 **Dataset:** Football Players Detection Dataset  
 Sumber: [Kaggle](https://www.kaggle.com/datasets/borhanitrash/football-players-detection-dataset)  
-Jumlah gambar: 312 (Train: 251, Valid: 43, Test: 18)  
-Kelas: ball, goalkeeper, player, referee  
-Model: YOLOv8n (non-pretrained)  
-Output: Bounding box, class label, confidence score
-""")
-    st.markdown("""
-**Evaluasi Model:**  
-- Precision rata-rata: 51,8%  
-- Recall rata-rata: 40%  
-- mAP50: 41,5%  
-- mAP50-95: 21,5%  
-Model cukup efisien dan mendeteksi objek dominan (player) dengan baik.
+- Jumlah gambar: 312  
+- Fungsi: Membantu analisis posisi pemain dan bola di lapangan, evaluasi pertandingan, dll.
 """)
 
 # ------------------------------
 # Halaman Prediksi
 # ------------------------------
-elif menu == "Prediksi":
+elif menu == "🔎 Prediksi":
     st.title("🔎 Prediksi Gambar")
     mode = st.selectbox("Pilih Mode:", ["Klasifikasi X-ray", "Deteksi Objek Sepak Bola"])
     folder_key = "Klasifikasi gambar" if mode.startswith("Klasifikasi") else "Objek deteksi"
@@ -205,52 +200,4 @@ elif menu == "Prediksi":
                         cls_idx = int(box.cls[0])
                         cls_name = results[0].names[cls_idx]
                         conf = float(box.conf[0])
-                        st.write(f"- {cls_name} (confidence {conf:.2f})")
-                        class_count[cls_name] = class_count.get(cls_name,0)+1
-                    st.info(f"Ringkasan: {', '.join([f'{v} {k}' for k,v in class_count.items()]) if class_count else 'Tidak ada objek terdeteksi.'}")
-
-# ------------------------------
-# Halaman Feedback
-# ------------------------------
-elif menu == "Feedback":
-    st.title("💬 Feedback & Saran")
-    with st.form("feedback_form", clear_on_submit=True):
-        name = st.text_input("Nama (opsional)")
-        rating = st.slider("Seberapa puas?", 1, 5, 4)
-        suggestion = st.text_area("Saran / komentar")
-        submitted = st.form_submit_button("Kirim")
-        if submitted:
-            save_feedback({
-                "name": name if name else "Anonim",
-                "rating": rating,
-                "suggestion": suggestion,
-                "time": time.strftime("%Y-%m-%d %H:%M:%S")
-            })
-            st.success("Terima kasih! Saranmu sudah tersimpan. 😊")
-    feedbacks = read_feedback()
-    last3 = feedbacks[-3:][::-1] if feedbacks else []
-    if last3:
-        st.markdown("### Feedback Terbaru:")
-        for fb in last3:
-            st.markdown(f"- **{fb['name']}** ({fb['time']}) — Rating: {fb['rating']}/5")
-            st.write(fb['suggestion'])
-
-# ------------------------------
-# Halaman Tentang Penyusun
-# ------------------------------
-elif menu == "Tentang Penyusun":
-    st.title("👤 Tentang Penyusun")
-    st.markdown("""
-Haii salam kenal! Aku **Yeni Ckrisdayanti Manalu**, angkatan 22.  
-Terima kasih sudah mengunjungi dashboard ini.  
-Semoga proyek UTS Big Data ini bermanfaat ya! 😊
-""")
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("""
-<div style='text-align: center; font-size: 14px;'>
-    © 2025 <b>Yeni Ckrisdayanti Manalu</b><br>
-    Dengan bimbingan Asisten Bg Diaz & Bg Mus<br>
-    🔗 <a href='https://www.linkedin.com/in/yeni-ckrisdayanti-manalu-741a572a9/' target='_blank'>LinkedIn</a> | 
-    📸 IG: @yeni.ckrisdayanti_ | Hub: ckyeni
-</div>
-""", unsafe_allow_html=True)
+                        st.write(f"- {cls
