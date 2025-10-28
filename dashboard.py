@@ -135,7 +135,7 @@ yolo_model, cnn_model = load_models()
 # -----------------------
 # Sidebar / Navigation
 # -----------------------
-st.sidebar.image(None, width=1)  # spacer
+st.sidebar.write("")  # kosong tapi tetap aman
 st.sidebar.markdown("### 📂 Menu")
 page = st.sidebar.radio("", ("Home", "Eksplorasi Dataset", "Prediksi", "Feedback", "Tentang"))
 
