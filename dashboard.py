@@ -190,7 +190,7 @@ elif menu == "🔎 Prediksi":
     
     if uploaded:
         img = Image.open(uploaded).convert("RGB")
-        st.image(img, caption="Input Image", use_column_width=True)
+        st.image(img, caption="Input Image", use_container_width=True)
         
         if st.button("Jalankan Prediksi"):
             with st.spinner("⏳ Sedang memproses..."):
