@@ -10,7 +10,6 @@ import os
 import io
 import json
 import time
-import random
 import matplotlib.pyplot as plt
 
 # -----------------------
@@ -18,7 +17,7 @@ import matplotlib.pyplot as plt
 # -----------------------
 st.set_page_config(page_title="UTS - Praktikum Big Data", layout="wide", page_icon="🎓")
 
-# Tema teknologi: Light / Dark
+# Tema Light / Dark
 tema = st.sidebar.radio("Pilih Tema:", ["Terang", "Gelap"])
 if tema == "Terang":
     st.markdown("""
@@ -35,12 +34,12 @@ else:
     </style>
     """, unsafe_allow_html=True)
 
-# Kop Dashboard
+# Header Dashboard
 st.markdown("""
 <div style='padding:15px;border-radius:10px;background: linear-gradient(90deg, #0ea5e9, #6366f1); color:white'>
   <h2>Ujian Tengah Semester - Praktikum Big Data </h2>
   <h2>2208108010017 - Yeni Ckrisdayanti Manalu </h2>
-  <p>Dashboard Klasifikasi Gambar  & Deteksi Objek</p>
+  <p>Dashboard Klasifikasi Gambar & Deteksi Objek</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -123,6 +122,14 @@ st.sidebar.markdown("### 📂 Menu")
 page = st.sidebar.radio("", ("Home", "Eksplorasi Dataset", "Prediksi", "Feedback", "Tentang"))
 
 # -----------------------
+# Inisialisasi Session State
+# -----------------------
+if "pred_mode" not in st.session_state:
+    st.session_state["pred_mode"] = "Klasifikasi"
+if "go_to_prediksi" not in st.session_state:
+    st.session_state["go_to_prediksi"] = False
+
+# -----------------------
 # PAGE: HOME
 # -----------------------
 if page == "Home":
@@ -131,25 +138,25 @@ if page == "Home":
         """
         Proyek ini dibuat sebagai **Ujian Tengah Semester (UTS)** Praktikum Big Data.
         Dashboard ini mengintegrasikan **dua eksperimen computer vision**:
-        1. **Klasifikasi X-ray (CNN)** — klasifikasi gambar Paru-Paru berdasarkan hasil rontgen dada untuk mendeteksi "Normal` vs `Pneumonia`.
+        1. **Klasifikasi X-ray (CNN)** — klasifikasi gambar Paru-Paru berdasarkan hasil rontgen dada untuk mendeteksi "Normal" vs "Pneumonia".
         2. **Deteksi Objek (YOLO)** — deteksi objek untuk mendeteksi objek sepak bola (ball, goalkeeper, player, referee).
         """
     )
-    st.markdown("### Kamu Penasaran Untuk Mendalaminya?? Pilih salah satu:")
+    st.markdown("### Kamu Penasaran Untuk Mendalaminya? Pilih salah satu:")
+    
     c1, c2 = st.columns(2)
     if c1.button("🩻 Klasifikasi Gambar"):
-    st.session_state["pred_mode"] = "Klasifikasi"
-    st.session_state["go_to_prediksi"] = True
+        st.session_state["pred_mode"] = "Klasifikasi"
+        st.session_state["go_to_prediksi"] = True
 
-if c2.button("⚽ Deteksi Objek"):
-    st.session_state["pred_mode"] = "Deteksi"
-    st.session_state["go_to_prediksi"] = True
+    if c2.button("⚽ Deteksi Objek"):
+        st.session_state["pred_mode"] = "Deteksi"
+        st.session_state["go_to_prediksi"] = True
 
-# setelah tombol
-if st.session_state.get("go_to_prediksi", False):
-    st.session_state["go_to_prediksi"] = False
-    st.experimental_rerun()
-
+    # jika tombol ditekan, rerun sekali saja
+    if st.session_state["go_to_prediksi"]:
+        st.session_state["go_to_prediksi"] = False
+        st.experimental_rerun()
 
 # -----------------------
 # PAGE: EKSPLORASI DATASET
@@ -163,6 +170,7 @@ elif page == "Eksplorasi Dataset":
         st.image(x_samples[:6], width=120)
     else:
         st.info("Tidak ada sample X-ray.")
+    
     st.markdown("### Deteksi Objek Sepak Bola")
     y_samples = list_samples("Objek deteksi")
     if y_samples:
@@ -177,29 +185,34 @@ elif page == "Eksplorasi Dataset":
 elif page == "Prediksi":
     st.markdown("## Prediksi (Upload / Pilih Sample)")
     mode = st.selectbox("Pilih Mode:", ["Klasifikasi X-ray", "Deteksi Objek Sepak Bola"],
-                        index=0 if st.session_state.get("pred_mode", "")!="Deteksi" else 1)
+                        index=0 if st.session_state.get("pred_mode", "") != "Deteksi" else 1)
+    
     folder_key = "Klasifikasi gambar" if mode.startswith("Klasifikasi") else "Objek deteksi"
     samples = list_samples(folder_key)
     choice = st.selectbox("Atau pilih sample:", ["-- Upload sendiri --"] + samples)
+    
     uploaded = st.file_uploader("Unggah Gambar", type=["jpg","jpeg","png"])
     if choice != "-- Upload sendiri --":
         uploaded = io.BytesIO(open(choice, "rb").read())
+    
     if uploaded:
         img = Image.open(uploaded).convert("RGB")
         st.image(img, caption="Input Image", use_column_width=True)
+        
         if st.button("🔎 Jalankan Prediksi"):
             with st.spinner("⏳ Data sedang diproses..."):
                 prog = st.progress(0)
                 for i in range(4):
                     time.sleep(0.25)
                     prog.progress((i+1)*20)
+                
                 if mode == "Klasifikasi X-ray":
                     img_gray = img.convert("L").resize((128,128))
                     arr = keras_image.img_to_array(img_gray)/255.0
                     arr = np.expand_dims(arr,0)
                     pred = cnn_model.predict(arr)
                     prob = float(pred[0][0])
-                    label = "Pneumonia" if prob>=0.5 else "Normal"
+                    label = "Pneumonia" if prob >= 0.5 else "Normal"
                     st.success("✅ Input gambar berhasil dianalisis!")
                     st.markdown(f"**Hasil Prediksi:** {label} — Probabilitas pneumonia: {prob:.2f}")
                 else:
@@ -207,6 +220,7 @@ elif page == "Prediksi":
                     annotated = results[0].plot()
                     st.success("✅ Input gambar berhasil dianalisis!")
                     st.image(annotated, caption="Hasil Deteksi")
+                    
                     st.markdown("### Objek Terdeteksi:")
                     class_count = {}
                     for box in results[0].boxes:
@@ -227,6 +241,7 @@ elif page == "Feedback":
         rating = st.slider("Seberapa puas?", 1, 5, 4)
         suggestion = st.text_area("Saran / komentar")
         submitted = st.form_submit_button("Kirim")
+        
         if submitted:
             save_feedback({
                 "name": name if name else "Anonim",
