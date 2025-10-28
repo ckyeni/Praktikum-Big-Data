@@ -1,5 +1,5 @@
 # ------------------------------
-# Dashboard UTS - Praktikum Big Data
+# Dashboard UTS 
 # ------------------------------
 import streamlit as st
 from ultralytics import YOLO
@@ -18,7 +18,7 @@ import time
 st.set_page_config(page_title="UTS Big Data Dashboard", layout="wide", page_icon="🎓")
 
 # ------------------------------
-# Tema Light / Dark (Revisi biru - ungu gelap)
+# Tema Light / Dark (Biru - Ungu Gelap)
 # ------------------------------
 tema = st.sidebar.radio("Pilih Tema:", ["Terang", "Gelap"])
 if tema == "Terang":
@@ -41,8 +41,8 @@ else:
 # ------------------------------
 st.markdown("""
 <div style='padding:15px;border-radius:10px;background: linear-gradient(90deg, #0ea5e9, #6366f1); color:white'>
-  <h2>Ujian Tengah Semester - Praktikum Big Data </h2>
-  <h2>2208108010017 - Yeni Ckrisdayanti Manalu </h2>
+  <h2>Ujian Tengah Semester - Praktikum Big Data</h2>
+  <h3>2208108010017 - Yeni Ckrisdayanti Manalu</h3>
   <p>Dashboard Klasifikasi Gambar & Deteksi Objek</p>
 </div>
 """, unsafe_allow_html=True)
@@ -121,8 +121,8 @@ Dashboard ini mengintegrasikan dua eksperimen computer vision:
 
 🔍 **Fitur yang bisa dicoba:**  
 - 🏠 Halaman Utama: Beranda dashboard  
-- 🩻 Klasifikasi Gambar: Ringkasan model klasifikasi X-ray (untuk menganalisis data kesehatan, deteksi pneumonia dari X-ray)  
-- ⚽ Deteksi Objek: Ringkasan model deteksi objek sepak bola (mendeteksi pemain dan bola di lapangan)  
+- 🩻 Klasifikasi Gambar: Ringkasan model klasifikasi X-ray (untuk menganalisis data kesehatan)  
+- ⚽ Deteksi Objek: Ringkasan model deteksi objek sepak bola (mendeteksi pemain dan bola)  
 - 🔎 Prediksi: Upload gambar dan lihat prediksi model  
 - 💬 Feedback: Berikan saran dan rating  
 - 👤 Tentang Penyusun: Info tentang pembuat dashboard
@@ -145,7 +145,7 @@ Sumber: [Kaggle](https://www.kaggle.com/datasets/tolgadincer/labeled-chest-xray-
 - Model: CNN (Conv2D, MaxPooling, Flatten, Dense, Dropout)  
 - Evaluasi: Accuracy 93%, Precision & Recall ≥ 60% untuk kelas minor
 """)
-    st.info("Klik menu 🔎 Prediksi untuk mulai menggunakan model. (Tidak langsung pindah halaman agar tetap di Home)")
+    st.info("Klik menu 🔎 Prediksi untuk mulai menggunakan model. (Tetap di halaman ini agar dashboard tidak berpindah)")
 
 # ------------------------------
 # Halaman Deteksi Objek
@@ -172,14 +172,18 @@ elif menu == "🔎 Prediksi":
     samples = list_samples(folder_key)
     choice = st.selectbox("Atau pilih sample:", ["-- Upload sendiri --"] + samples)
     uploaded = st.file_uploader("Unggah Gambar", type=["jpg","jpeg","png"])
+    
     if choice != "-- Upload sendiri --":
         uploaded = io.BytesIO(open(choice, "rb").read())
+    
     if uploaded:
         img = Image.open(uploaded).convert("RGB")
         st.image(img, caption="Input Image", use_column_width=True)
+        
         if st.button("Jalankan Prediksi"):
             with st.spinner("⏳ Sedang memproses..."):
                 time.sleep(1)
+                
                 if mode == "Klasifikasi X-ray":
                     img_gray = img.convert("L").resize((128,128))
                     arr = keras_image.img_to_array(img_gray)/255.0
@@ -189,20 +193,18 @@ elif menu == "🔎 Prediksi":
                     label = "Pneumonia" if prob >= 0.5 else "Normal"
                     st.success("✅ Prediksi selesai!")
                     st.markdown(f"**Hasil Prediksi:** {label} — Probabilitas pneumonia: {prob:.2f}")
-                else:
+                
+                else:  # Deteksi Objek YOLO
                     results = yolo_model(np.array(img))
                     annotated = results[0].plot()
                     st.success("✅ Prediksi selesai!")
                     st.image(annotated, caption="Hasil Deteksi")
+                    
                     st.markdown("### Objek Terdeteksi:")
                     class_count = {}
                     for box in results[0].boxes:
                         cls_idx = int(box.cls[0])
                         cls_name = results[0].names[cls_idx]
-                        conf = float(box.conf[0])
-                        st.write(f"- {cls_idx = int(box.cls[0])
-                        cls_name = results[0].names[cls_idx]
-                        conf = float(box.conf[0])
                         if cls_name not in class_count:
                             class_count[cls_name] = 0
                         class_count[cls_name] += 1
@@ -223,6 +225,7 @@ elif menu == "💬 Feedback":
         if submitted:
             save_feedback({"nama": nama, "rating": rating, "saran": saran, "waktu": time.ctime()})
             st.success("Terima kasih! Feedback berhasil dikirim.")
+    
     st.markdown("### Feedback sebelumnya:")
     feedbacks = read_feedback()
     if feedbacks:
@@ -237,8 +240,8 @@ elif menu == "👤 Tentang Penyusun":
     st.markdown("""
 Haii, salam kenal! 👋  
 Aku **Yeni Ckrisdayanti Manalu**, mahasiswa Statistika USK angkatan 22.  
-Projek dashboard ini untuk memenuhi **UTS Praktikum Big Data**.  
+Projek dashboard ini dibuat untuk memenuhi **UTS Praktikum Big Data**.  
 
 Terima kasih sudah mengunjungi dashboard ini.  
-Semoga proyek UTS Big Data ini bermanfaat dan bisa menjadi referensi belajar komputer vision dan dashboard interaktif. 😊
+Semoga proyek UTS Big Data ini bermanfaat dan bisa menjadi referensi belajar computer vision dan dashboard interaktif. 😊
 """)
