@@ -18,10 +18,10 @@ import time
 st.set_page_config(page_title="UTS Big Data Dashboard", layout="wide", page_icon="🎓")
 
 # ------------------------------
-# Tema Light / Dark (Biru - Ungu Gelap)
+# Tema Light / Dark (Biru - Ungu Hitam)
 # ------------------------------
-tema = st.sidebar.radio("Pilih Tema:", ["Terang", "Gelap"])
-if tema == "Terang":
+tema = st.sidebar.radio("Pilih Tema Background:", ["Ungu", "Hitam"])
+if tema == "Ungu":
     st.markdown("""
     <style>
     .stApp {background: linear-gradient(180deg, #0f172a 0%, #6366f1 100%); color:#FFFFFF;}
@@ -121,8 +121,8 @@ Dashboard ini mengintegrasikan dua eksperimen computer vision:
 
 🔍 **Fitur yang bisa dicoba:**  
 - 🏠 Halaman Utama: Beranda dashboard  
-- 🩻 Klasifikasi Gambar: Ringkasan model klasifikasi X-ray (untuk menganalisis data kesehatan)  
-- ⚽ Deteksi Objek: Ringkasan model deteksi objek sepak bola (mendeteksi pemain dan bola)  
+- 🩻 Klasifikasi Gambar: Ringkasan model klasifikasi X-ray
+- ⚽ Deteksi Objek: Ringkasan model deteksi objek sepak bola 
 - 🔎 Prediksi: Upload gambar dan lihat prediksi model  
 - 💬 Feedback: Berikan saran dan rating  
 - 👤 Tentang Penyusun: Info tentang pembuat dashboard
@@ -158,9 +158,21 @@ Model dapat mengenali **ball, player, goalkeeper, referee** di lapangan.
 
 **Dataset:** Football Players Detection Dataset  
 Sumber: [Kaggle](https://www.kaggle.com/datasets/borhanitrash/football-players-detection-dataset)  
-- Jumlah gambar: 312  
-- Fungsi: Membantu analisis posisi pemain dan bola di lapangan, evaluasi pertandingan, dll.
+- Jumlah gambar: 312 (Train: 251, Valid: 43, Test: 18)  
+- Kelas: ball, goalkeeper, player, referee  
+- Model: YOLOv8n (non-pretrained)  
+- Output: Bounding box, class label, confidence score
 """)
+    st.markdown("""
+**Evaluasi Model:**  
+- Precision rata-rata: 51,8%  
+- Recall rata-rata: 40%  
+- mAP50: 41,5%  
+- mAP50-95: 21,5%  
+Model cukup efisien dan mendeteksi objek dominan (player) dengan baik.
+""")
+
+    st.info("Klik menu 🔎 Prediksi untuk mulai menggunakan model. (Tetap di halaman ini agar dashboard tidak berpindah)")
 
 # ------------------------------
 # Halaman Prediksi
@@ -245,3 +257,12 @@ Projek dashboard ini dibuat untuk memenuhi **UTS Praktikum Big Data**.
 Terima kasih sudah mengunjungi dashboard ini.  
 Semoga proyek UTS Big Data ini bermanfaat dan bisa menjadi referensi belajar computer vision dan dashboard interaktif. 😊
 """)
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("""
+<div style='text-align: center; font-size: 14px;'>
+    © 2025 <b>Yeni Ckrisdayanti Manalu</b><br>
+    Dengan bimbingan Asisten Bg Diaz & Bg Mus<br>
+    🔗 <a href='https://www.linkedin.com/in/yeni-ckrisdayanti-manalu-741a572a9/' target='_blank'>LinkedIn</a> | 
+    📸 IG: @yeni.ckrisdayanti_ | Hub: ckyeni
+</div>
+""", unsafe_allow_html=True)
