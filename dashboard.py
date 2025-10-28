@@ -17,13 +17,12 @@ import time
 st.set_page_config(page_title="UTS - Praktikum Big Data", layout="wide", page_icon="🎓")
 
 # Tema Light / Dark
-tema = st.sidebar.radio("Pilih Tema:", ["Terang", "Gelap"])
+tema = st.sidebar.radio("Tema:", ["Terang", "Gelap"])
 if tema == "Terang":
     st.markdown("""
     <style>
     .stApp {background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%); color:#000;}
     .css-1d391kg {background:#F0F0F0;} /* sidebar */
-    h1, h2, h3, h4, h5, h6 {color:#0a0a0a;}
     </style>
     """, unsafe_allow_html=True)
 else:
@@ -31,18 +30,15 @@ else:
     <style>
     .stApp {background:#1E1E2F; color:#FFFFFF;}
     .css-1d391kg {background:#2C2C3A;}
-    h1, h2, h3, h4, h5, h6 {color:#FFFFFF;}
     </style>
     """, unsafe_allow_html=True)
 
-# -----------------------
-# HEADER / KOP
-# -----------------------
+# Header Dashboard
 st.markdown("""
-<div style='padding:20px;border-radius:12px;background: linear-gradient(90deg, #0ea5e9, #6366f1); color:white; text-align:center'>
-  <h1>🎓 Ujian Tengah Semester - Praktikum Big Data</h1>
-  <h2>2208108010017 - Yeni Ckrisdayanti Manalu</h2>
-  <p>Dashboard Interaktif: Klasifikasi Gambar & Deteksi Objek</p>
+<div style='padding:15px;border-radius:10px;background: linear-gradient(90deg, #0ea5e9, #6366f1); color:white'>
+  <h2>Ujian Tengah Semester - Praktikum Big Data </h2>
+  <h3>2208108010017 - Yeni Ckrisdayanti Manalu </h3>
+  <p>Dashboard Klasifikasi Gambar & Deteksi Objek</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -80,8 +76,19 @@ def list_samples(subfolder):
     files.sort()
     return [os.path.join(folder, f) for f in files]
 
+def pil_to_bytes(img_pil):
+    buf = io.BytesIO()
+    img_pil.save(buf, format="PNG")
+    return buf.getvalue()
+
+def cv2_imencode_png(cv2_img):
+    success, encoded = cv2.imencode(".png", cv2_img)
+    if not success:
+        return None
+    return encoded.tobytes()
+
 # -----------------------
-# Load Models
+# Load Models (cached)
 # -----------------------
 @st.cache_resource
 def load_models():
@@ -107,110 +114,114 @@ def load_models():
 
 yolo_model, cnn_model = load_models()
 
-# -----------------------
-# Sidebar / Navigation
-# -----------------------
-st.sidebar.markdown("### 📂 Menu")
-page = st.sidebar.radio("", ("Home", "Eksplorasi Dataset", "Prediksi", "Feedback", "Tentang"))
+# ------------------------------
+# Menu Sidebar / Navigasi
+# ------------------------------
+st.sidebar.title("Navigasi Fitur")
+menu = st.sidebar.radio("Menu", [
+    "Halaman Utama", 
+    "Klasifikasi Gambar", 
+    "Deteksi Objek",
+    "Prediksi", 
+    "Feedback",
+    "Tentang Penyusun"
+])
 
-# -----------------------
-# Session State
-# -----------------------
-if "pred_mode" not in st.session_state:
-    st.session_state["pred_mode"] = "Klasifikasi"
-if "go_to_prediksi" not in st.session_state:
-    st.session_state["go_to_prediksi"] = False
+# ------------------------------
+# Session state untuk navigasi tombol
+# ------------------------------
+if "page" not in st.session_state:
+    st.session_state["page"] = None
 
-# -----------------------
-# PAGE: HOME
-# -----------------------
-if page == "Home":
-    st.markdown("## 👋 Halo! Selamat datang di Dashboard UTS")
+# ------------------------------
+# Halaman Utama
+# ------------------------------
+if menu == "Halaman Utama":
+    st.title("Selamat Datang di Dashboard UTS 👋")
     st.markdown("""
-    Proyek ini dibuat sebagai **Ujian Tengah Semester Praktikum Big Data**.  
-    Dashboard menyatukan dua eksperimen computer vision:
-    - 🩻 **Klasifikasi X-ray (CNN)**: Normal vs Pneumonia
-    - ⚽ **Deteksi Objek (YOLO)**: ball, player, goalkeeper, referee
+    Proyek ini dibuat sebagai **Ujian Tengah Semester (UTS)** Praktikum Big Data.  
+    Dashboard ini menyatukan dua eksperimen computer vision:
+
+    🩻 **Klasifikasi X-ray (CNN)**: Normal vs Pneumonia  
+    ⚽ **Deteksi Objek (YOLO)**: ball, player, goalkeeper, referee
+
+    🔍 Pilih fitur dari menu navigasi di samping kiri untuk dicoba.
+    """)
+
+# ------------------------------
+# Halaman Klasifikasi Gambar
+# ------------------------------
+elif menu == "Klasifikasi Gambar":
+    st.title("🩻 Klasifikasi Gambar X-ray")
+    st.markdown("""
+    Di halaman ini, kamu dapat mencoba model klasifikasi gambar X-ray untuk mendeteksi pneumonia.
+
+    **Ringkasan Proyek:**
+    - **Dataset**: [Chest X-ray Images](https://www.kaggle.com/datasets/tolgadincer/labeled-chest-xray-images)
+    - **Jumlah gambar**: 5.856 (Normal: 1.583, Pneumonia: 4.273)
+    - **Preprocessing**: Rescaling, Augmentasi, Resize 128x128, Grayscale
+    - **Model**: CNN dengan beberapa Conv2D, MaxPooling, Flatten, Dense, Dropout
+    - **Evaluasi**: Accuracy 93%, Precision & Recall ≥ 60% untuk kelas minor
     """)
     
-    st.markdown("### 🔍 Pilih fitur untuk dicoba:")
-    c1, c2 = st.columns(2)
-    
-    if c1.button("🩻 Klasifikasi Gambar"):
-        st.session_state["pred_mode"] = "Klasifikasi"
-        st.session_state["go_to_prediksi"] = True
-    if c2.button("⚽ Deteksi Objek"):
-        st.session_state["pred_mode"] = "Deteksi"
-        st.session_state["go_to_prediksi"] = True
-
-    if st.session_state["go_to_prediksi"]:
-        st.session_state["go_to_prediksi"] = False
+    if st.button("Mulai Menggunakan Model"):
+        st.session_state['page'] = 'prediksi'
         st.experimental_rerun()
 
-# -----------------------
-# PAGE: EKSPLORASI DATASET
-# -----------------------
-elif page == "Eksplorasi Dataset":
-    st.markdown("## 📊 Eksplorasi Dataset")
-    
-    # Klasifikasi X-ray
-    st.markdown("### 🩻 Klasifikasi X-ray")
-    x_samples = list_samples("Klasifikasi gambar")
-    if x_samples:
-        st.markdown(f"Jumlah sample: **{len(x_samples)}**")
-        st.image(x_samples[:6], width=140)
-    else:
-        st.info("Tidak ada sample X-ray.")
-    
-    # Deteksi Objek
-    st.markdown("### ⚽ Deteksi Objek Sepak Bola")
-    y_samples = list_samples("Objek deteksi")
-    if y_samples:
-        st.markdown(f"Jumlah sample: **{len(y_samples)}**")
-        st.image(y_samples[:6], width=140)
-    else:
-        st.info("Tidak ada sample objek deteksi.")
+# ------------------------------
+# Halaman Deteksi Objek
+# ------------------------------
+elif menu == "Deteksi Objek":
+    st.title("⚽ Deteksi Objek Sepak Bola")
+    st.markdown("""
+    Dataset: [Football Players Detection Dataset](https://www.kaggle.com/datasets/borhanitrash/football-players-detection-dataset)  
+    Dataset ini dibuat untuk mendeteksi objek utama dalam pertandingan sepak bola seperti **ball, player, goalkeeper, referee**.
 
-# -----------------------
-# PAGE: PREDIKSI
-# -----------------------
-elif page == "Prediksi":
-    st.markdown("## 🔎 Prediksi (Upload / Pilih Sample)")
-    mode = st.selectbox("Pilih Mode:", ["Klasifikasi X-ray", "Deteksi Objek Sepak Bola"],
-                        index=0 if st.session_state.get("pred_mode", "") != "Deteksi" else 1)
-    
-    folder_key = "Klasifikasi gambar" if mode.startswith("Klasifikasi") else "Objek deteksi"
-    samples = list_samples(folder_key)
-    choice = st.selectbox("Atau pilih sample:", ["-- Upload sendiri --"] + samples)
+    - Jumlah gambar: 312 (Train: 251, Valid: 43, Test: 18)
+    - Model: YOLOv8n dari awal (non-pretrained)
+    - Output: Bounding box, class label, confidence score
+
+    **Evaluasi Model:**
+    - Precision rata-rata: 51,8%
+    - Recall rata-rata: 40%
+    - mAP50: 41,5%
+    - mAP50-95: 21,5%
+    Model cukup efisien dan mendeteksi objek dominan (player) dengan baik.
+    """)
+
+    if st.button("Mulai Menggunakan Model"):
+        st.session_state['page'] = 'prediksi'
+        st.experimental_rerun()
+
+# ------------------------------
+# Halaman Prediksi
+# ------------------------------
+elif menu == "Prediksi":
+    st.title("🔍 Prediksi")
+    mode = st.selectbox("Pilih Mode:", ["Klasifikasi X-ray", "Deteksi Objek Sepak Bola"])
     
     uploaded = st.file_uploader("Unggah Gambar", type=["jpg","jpeg","png"])
-    if choice != "-- Upload sendiri --":
-        uploaded = io.BytesIO(open(choice, "rb").read())
-    
     if uploaded:
         img = Image.open(uploaded).convert("RGB")
-        st.image(img, caption="📷 Input Image", use_column_width=True)
+        st.image(img, caption="Input Image", use_column_width=True)
         
-        if st.button("⚡ Jalankan Prediksi"):
-            with st.spinner("⏳ Sedang memproses..."):
-                prog = st.progress(0)
-                for i in range(4):
-                    time.sleep(0.25)
-                    prog.progress((i+1)*25)
-                
+        if st.button("Jalankan Prediksi"):
+            with st.spinner("⏳ Data sedang diproses..."):
+                time.sleep(1)
                 if mode == "Klasifikasi X-ray":
                     img_gray = img.convert("L").resize((128,128))
                     arr = keras_image.img_to_array(img_gray)/255.0
                     arr = np.expand_dims(arr,0)
                     pred = cnn_model.predict(arr)
                     prob = float(pred[0][0])
-                    label = "🦠 Pneumonia" if prob >= 0.5 else "✅ Normal"
-                    st.success(f"**Hasil Prediksi:** {label} — Probabilitas pneumonia: {prob:.2f}")
+                    label = "Pneumonia" if prob >= 0.5 else "Normal"
+                    st.success("✅ Gambar berhasil dianalisis!")
+                    st.markdown(f"**Hasil Prediksi:** {label} — Probabilitas pneumonia: {prob:.2f}")
                 else:
                     results = yolo_model(np.array(img))
                     annotated = results[0].plot()
-                    st.success("✅ Hasil Deteksi Objek")
-                    st.image(annotated, caption="Hasil Deteksi YOLO")
+                    st.success("✅ Gambar berhasil dianalisis!")
+                    st.image(annotated, caption="Hasil Deteksi")
                     
                     st.markdown("### Objek Terdeteksi:")
                     class_count = {}
@@ -222,16 +233,16 @@ elif page == "Prediksi":
                         class_count[cls_name] = class_count.get(cls_name,0)+1
                     st.info(f"Ringkasan: {', '.join([f'{v} {k}' for k,v in class_count.items()]) if class_count else 'Tidak ada objek terdeteksi.'}")
 
-# -----------------------
-# PAGE: FEEDBACK
-# -----------------------
-elif page == "Feedback":
-    st.markdown("## 📝 Feedback & Saran")
+# ------------------------------
+# Halaman Feedback
+# ------------------------------
+elif menu == "Feedback":
+    st.title("💬 Feedback & Saran")
     with st.form("feedback_form", clear_on_submit=True):
         name = st.text_input("Nama (opsional)")
         rating = st.slider("Seberapa puas?", 1, 5, 4)
         suggestion = st.text_area("Saran / komentar")
-        submitted = st.form_submit_button("Kirim ✉️")
+        submitted = st.form_submit_button("Kirim")
         
         if submitted:
             save_feedback({
@@ -240,30 +251,26 @@ elif page == "Feedback":
                 "suggestion": suggestion,
                 "time": time.strftime("%Y-%m-%d %H:%M:%S")
             })
-            st.success("Terima kasih! 🙌 Saran tersimpan.")
+            st.success("Terima kasih! Saran tersimpan.")
 
-    feedbacks = read_feedback()
-    if feedbacks:
-        st.markdown("### 🔹 Review Terbaru")
-        for fb in feedbacks[-3:][::-1]:
-            st.info(f"**{fb['name']}** ({fb['time']}) — Rating: {fb['rating']}/5\n💬 {fb['suggestion']}")
-
-# -----------------------
-# PAGE: TENTANG
-# -----------------------
-elif page == "Tentang":
-    st.markdown("## ℹ️ Tentang & Kontak")
+# ------------------------------
+# Halaman Tentang Penyusun
+# ------------------------------
+elif menu == "Tentang Penyusun":
+    st.title("👤 Tentang Penyusun")
     st.markdown("""
-    **Proyek:** UTS Praktikum Big Data  
-    **Pembuat:** Yeni Ckrisdayanti Manalu (Statistika 2022) 🎓  
-    **Model:** CNN (.h5) & YOLOv8n (.pt)  
-    **Dataset:** Chest X-ray, Football Players Detection  
-    **Bimbingan:** Asistensi praktikum oleh Bg Diaz & Bg Mus
+    Haii salam kenal! Aku **Yeni Ckrisdayanti Manalu**, angkatan 22.  
+    Terima kasih sudah mengunjungi dashboard ku.  
+    Ini adalah proyek UTS Big Data, semoga bermanfaat ya 😊
     """)
-    st.markdown("---")
-    st.markdown("**Link & Kontak** 🌐")
+    st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("""
-    - GitHub: (repo)  
-    - LinkedIn: [Yeni Ckrisdayanti](https://www.linkedin.com/in/yeni-ckrisdayanti-manalu-741a572a9/)  
-    - Instagram: (opsional)
-    """)
+    <div style='text-align: center; font-size: 14px;'>
+        © 2025 <b>Yeni Ckrisdayanti Manalu</b><br>
+        Dengan bimbingan Asisten Bg Diaz & Bg Mus<br>
+        <a href='https://www.linkedin.com/in/yeni-ckrisdayanti-manalu-741a572a9/' target='_blank'>
+        🔗 LinkedIn</a><br>
+        Instagram: @yeni.ckrisdayanti_<br>
+        Hubungi: ckyeni
+    </div>
+    """, unsafe_allow_html=True)
