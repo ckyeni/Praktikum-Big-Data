@@ -256,6 +256,4 @@ elif page == "Tentang":
     st.markdown("- GitHub: (repo)\n- LinkedIn: (link)\n- Instagram: (opsional)")
     st.markdown("Terima kasih telah menggunakan dashboard ini! 🎓")
 
-# -----------------------
-# END
-# -----------------------
+
