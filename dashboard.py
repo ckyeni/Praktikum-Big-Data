@@ -38,8 +38,9 @@ else:
 # Kop Dashboard
 st.markdown("""
 <div style='padding:15px;border-radius:10px;background: linear-gradient(90deg, #0ea5e9, #6366f1); color:white'>
-  <h2>Ujian Tengah Semester - Praktikum Big Data</h2>
-  <p>Dashboard Klasifikasi Citra & Deteksi Objek Berbasis Deep Learning</p>
+  <h2>Ujian Tengah Semester - Praktikum Big Data </h2>
+  <h2>2208108010017 - Yeni Ckrisdayanti Manalu </h2>
+  <p>Dashboard Klasifikasi Gambar  & Deteksi Objek</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -125,25 +126,30 @@ page = st.sidebar.radio("", ("Home", "Eksplorasi Dataset", "Prediksi", "Feedback
 # PAGE: HOME
 # -----------------------
 if page == "Home":
-    st.markdown("## Selamat datang 👋")
+    st.markdown("## Selamat datang semuanya 👋")
     st.markdown(
         """
-        Proyek ini dibuat sebagai tugas **Ujian Tengah Semester (UTS)** Praktikum Big Data.
+        Proyek ini dibuat sebagai **Ujian Tengah Semester (UTS)** Praktikum Big Data.
         Dashboard ini mengintegrasikan **dua eksperimen computer vision**:
-        1. **Klasifikasi X-ray (CNN)** — mendeteksi `Normal` vs `Pneumonia`.
-        2. **Deteksi Objek (YOLO)** — mendeteksi objek sepak bola (ball, goalkeeper, player, referee).
+        1. **Klasifikasi X-ray (CNN)** — klasifikasi gambar Paru-Paru berdasarkan hasil rontgen dada untuk mendeteksi "Normal` vs `Pneumonia`.
+        2. **Deteksi Objek (YOLO)** — deteksi objek untuk mendeteksi objek sepak bola (ball, goalkeeper, player, referee).
         """
     )
-    st.markdown("### Penasaran? Pilih salah satu:")
+    st.markdown("### Kamu Penasaran Untuk Mendalaminya?? Pilih salah satu:")
     c1, c2 = st.columns(2)
     if c1.button("🩻 Klasifikasi Gambar"):
-        page = "Prediksi"
-        st.session_state["pred_mode"] = "Klasifikasi"
-        st.experimental_rerun()
-    if c2.button("⚽ Deteksi Objek"):
-        page = "Prediksi"
-        st.session_state["pred_mode"] = "Deteksi"
-        st.experimental_rerun()
+    st.session_state["pred_mode"] = "Klasifikasi"
+    st.session_state["go_to_prediksi"] = True
+
+if c2.button("⚽ Deteksi Objek"):
+    st.session_state["pred_mode"] = "Deteksi"
+    st.session_state["go_to_prediksi"] = True
+
+# setelah tombol
+if st.session_state.get("go_to_prediksi", False):
+    st.session_state["go_to_prediksi"] = False
+    st.experimental_rerun()
+
 
 # -----------------------
 # PAGE: EKSPLORASI DATASET
